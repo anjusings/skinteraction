@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 import altair as alt
@@ -10,7 +11,7 @@ st.title("Melanoma Incidence Rates by Race")
 
 @st.cache_data
 def get_data():
-    df = pd.read_csv("../app_data/incidence.csv")
+    df = pd.read_csv("app_data/incidence.csv")
     df['Year'] = df['Year'].astype(str).str.replace(',', '')
     return df.set_index("Year")
 
@@ -59,7 +60,7 @@ st.title("Melanoma Mortality Rates by Race")
 @st.cache_data
 def get_mortality_data():
     try:
-        df = pd.read_csv("../app_data/mortality.csv")
+        df = pd.read_csv("app_data/mortality.csv")
         df['Year'] = df['Year'].astype(str).str.replace(',', '')
         return df.set_index("Year")
     except pd.errors.EmptyDataError:
@@ -110,3 +111,19 @@ except URLError as e:
     )
 
 st.markdown('<p style="font-size:12px;">The data is sourced by the National Cancer Institute through the SEER Program.</p>\n <a href="https://seer.cancer.gov/archive/csr/1975_2010/browse_csr.php?sectionSEL=16&pageSEL=sect_16_zfig.02" style="font-size:12px;" target="_blank">Melanoma Statistics Link</a>', unsafe_allow_html=True)
+
+
+
+'''
+# Avoid division by zero
+data_ratio = data_mortality.divide(data_incidence.replace(0, float('nan')))
+
+# Display the ratio before any modifications
+st.write("### Raw Ratio Data", data_ratio.sort_index())
+
+# Reset the index and melt the DataFrame for Altair
+data_ratio = data_ratio.reset_index().melt(id_vars=["Year"], var_name="Race", value_name="Ratio")
+
+# Check if the melting process was successful by displaying the DataFrame
+st.write("### Melted Ratio Data", data_ratio)
+'''
