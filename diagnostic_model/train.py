@@ -123,11 +123,11 @@ class ModelTrainer:
 
     def upload_model_to_gcs(self):
         """Uploads the model to the bucket."""
-        source_file_name = f"saved_models/{self.model_name}"
+        source_file_name = f"saved_models/{self.model_name}/saved_model.pb"
         self.model.save(source_file_name)
         bucket = self.client.bucket(self.model_artifacts_bucket)
-        blob = bucket.blob(self.model_name)
-        blob.upload_from_filename(f"{source_file_name}/saved_model.pb")
+        blob = bucket.blob(f"{self.model_name}/saved_model.pb")
+        blob.upload_from_filename(source_file_name)
         print(
             f"Model uploaded to {self.model_name} in bucket {self.model_artifacts_bucket}."
         )
