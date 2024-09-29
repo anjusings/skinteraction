@@ -1,37 +1,32 @@
+import os
 import streamlit as st
-from streamlit_chat import message
+import google.generativeai as genai
 
-# Set the title of the chatbot app
-st.title("Chatbot with Skinteract Chat")
 
-# Define a function to generate a simple bot response
-def get_bot_response(user_input):
-    if 'hello' in user_input.lower():
-        return "Hi there! How can I assist you today?"
-    elif 'bye' in user_input.lower():
-        return "Goodbye! Have a great day!"
-    elif 'how are you' in user_input.lower():
-        return "I'm a bot, so I'm always good! How about you?"
-    else:
-        return "I'm sorry, I don't understand that. Can you please rephrase?"
+st.title("Chat with Skinteract Chat")
 
-# Initialize chat history in session state
-if 'chat_history' not in st.session_state:
-    st.session_state['chat_history'] = []
+genai.configure(api_key=os.environ['GEMINI_API_KEY'])
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-# User input section
-user_input = st.text_input("You: ", key="input")
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-# When user submits input
-if user_input:
-    # Append user message to chat history
-    st.session_state['chat_history'].append({"message": user_input, "is_user": True})
-    # Get bot response
-    bot_response = get_bot_response(user_input)
-    # Append bot response to chat history
-    st.session_state['chat_history'].append({"message": bot_response, "is_user": False})
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-# Display the chat history using streamlit_chat
-for chat in st.session_state['chat_history']:
-    message(chat["message"], is_user=chat["is_user"])
+if prompt := st.chat_input("What is up?"):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
+    with st.chat_message("assistant"):
+        chat = model.start_chat(
+            history=[
+                {"role": m["role"], "parts": m["content"]}
+                for m in st.session_state.messages
+            ]
+        )
+        response = chat.send_message(prompt)
+        st.markdown(response.text)
+    st.session_state.messages.append({"role": "model", "content": response.text})
